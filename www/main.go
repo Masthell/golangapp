@@ -1,26 +1,36 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
 	"net/http"
+	"os"
 )
 
-func home_page(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
+var tpl = template.Must(template.ParseFiles("index.html"))
+
+func indexHandle(w http.ResponseWriter, r *http.Request) {
+	tpl.Execute(w, nil)
 }
 
-func contacts_page(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello")
-}
-
-func handleRequest() {
-	http.HandleFunc("/", home_page)
-	http.HandleFunc("/contacts/", contacts_page)
-	http.ListenAndServe(":8080", nil)
-}
+// func handleRequest() {
+//	http.HandleFunc("/", indexHandle)
+//	http.ListenAndServe(":8080", nil)
+// }
 
 func main() {
-	handleRequest()
+	// handleRequest()
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "3000"
+    }
+
+    mux := http.NewServeMux()
+
+    fs := http.FileServer(http.Dir("assets"))
+    mux.Handle("/assets/", http.StripPrefix("/assets/", fs))
+
+    mux.HandleFunc("/", indexHandle)
+    http.ListenAndServe(":"+port, mux)
 }
 
-// localhost:8080/ заходим через хром
+// localhost:8080
